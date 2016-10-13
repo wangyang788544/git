@@ -21,8 +21,14 @@ public class GetWhois {
             server = "whois.pir.org";  
         } else if ("cn".equals(tld)) {  
             server = "whois.cnnic.cn";  
-        }  
-        String whoisInfo = query(domain, server);
+        }
+        String whoisInfo = null;
+        try {
+            whoisInfo = query(domain, server);
+        } catch (Exception e) {
+            System.out.println("[SOCKET ERROR] " + domain);
+            return null;
+        }
         System.out.println(whoisInfo);
         String[] lines = whoisInfo.split("\n");
         System.out.println("Tokens size: " + lines.length);
@@ -32,12 +38,13 @@ public class GetWhois {
               System.out.println("##################################");
               System.out.println(line);
               String[] tokens = line.split(":");
-              String whoisServer = tokens[1];
+              String whoisServer = tokens[1].trim();
               System.out.println("Whois Server = " + whoisServer);
               System.out.println("##################################");
+              return whoisServer;
             }
         }
-        return whoisInfo;
+        return null;
     }
 
     public static String query(String domain, String server) throws Exception {  
@@ -72,17 +79,18 @@ public class GetWhois {
         //
 
         ArrayList<String> domains = new ArrayList<String>();
-        domains.add("=paopaomi.com");
+        domains.add("paopaomi.com");
         //domains.add("=baidu.com");
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(1);  
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(2);  
         for (int i = 0; i < domains.size(); i++) {  
           final String domain = domains.get(i);  
           fixedThreadPool.execute(new Runnable() {  
             public void run() {  
               try {  
                 System.out.println("Processing " + domain);
-                String whoisServer = getWhoisServer(domain);
-                //getWhois(whoisServer, domain);
+                String whoisServer = getWhoisServer("=" + domain);
+                String whoisInfo = query(domain, whoisServer);
+                System.out.println("Whois Info: " + whoisInfo);
                 Thread.sleep(10);  
               } catch (Exception e) {  
                 e.printStackTrace();  
